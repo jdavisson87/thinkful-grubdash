@@ -2,10 +2,25 @@
   "name": "thinkful-grubdash",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/server.js",
+    "start:dev": "nodemon src/server.js",
+    "start:solution": "npm run -it docker:build && npm run docker:run",
+    "test": "jest",
+    "test:solution": "npm run docker:build && npm run docker:test",
+    "test:watch": "jest --watch"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "cross-conf-env": "^1.2.1",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "jest": "^27.1.0",
+    "nodemon": "^2.0.12",
+    "supertest": "^6.1.6"
+  }
 }
