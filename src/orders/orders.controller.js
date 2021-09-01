@@ -2,6 +2,43 @@ const path = require('path');
 const orders = require(path.resolve('src/data/orders-data'));
 const nextId = require('../utils/nextId');
 
+const idMatchesId = (req, res, next) => {
+  const { orderId } = req.params;
+  const order = req.body.data;
+  if (order.id && order.id !== orderId) {
+    return next({
+      status: 400,
+      message: `Data id does not match order id. Order: ${orderId} Data: ${order.id}`,
+    });
+  }
+  next();
+};
+
+const statusIsValid = (req, res, next) => {
+  const order = req.body.data;
+  if (!order.status) {
+    return next({
+      status: 400,
+      message: `status is missing`,
+    });
+  }
+
+  if (order.status === 'invalid') {
+    return next({
+      status: 400,
+      message: `status is invalid`,
+    });
+  }
+
+  if (order.status === 'delivered') {
+    return next({
+      status: 400,
+      message: 'Cannot updated a delivered order',
+    });
+  }
+  next();
+};
+
 const orderIdIsValid = (req, res, next) => {
   const { orderId } = req.params;
   const foundOrder = orders.find((order) => order.id === orderId);
@@ -77,6 +114,20 @@ const bodyIsValid = (req, res, next) => {
   next();
 };
 
+const update = (req, res, next) => {
+  const { newOrder, foundOrder } = res.locals;
+  if (newOrder.id !== foundOrder.id) {
+    return next({
+      status: 400,
+      message: `You cannot change existing order Id ${foundOrder.id} to ${newOrder.id}`,
+    });
+  }
+
+  const updatedOrder = { ...foundOrder, ...newOrder };
+  orders.push(updatedOrder);
+  res.json({ data: updatedOrder });
+};
+
 const read = (req, res, next) => {
   res.json({ data: res.locals.foundOrder });
 };
@@ -94,5 +145,6 @@ const create = (req, res, next) => {
 module.exports = {
   create: [bodyIsValid, create],
   read: [orderIdIsValid, read],
+  update: [orderIdIsValid, idMatchesId, bodyIsValid, statusIsValid, update],
   list,
 };
