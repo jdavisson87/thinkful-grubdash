@@ -142,9 +142,24 @@ const create = (req, res, next) => {
   res.status(201).json({ data: newOrder });
 };
 
+const destroy = (req, res, next) => {
+  const { foundOrder } = res.locals;
+  const { orderId } = req.params;
+  if (foundOrder.status !== 'pending') {
+    return next({
+      status: 400,
+      message: 'Order status must not be pending',
+    });
+  }
+  const index = orders.findIndex((order) => order.id === Number(orderId));
+  orders.splice(index, 1);
+  res.sendStatus(204);
+};
+
 module.exports = {
   create: [bodyIsValid, create],
   read: [orderIdIsValid, read],
   update: [orderIdIsValid, idMatchesId, bodyIsValid, statusIsValid, update],
+  delete: [orderIdIsValid, destroy],
   list,
 };
