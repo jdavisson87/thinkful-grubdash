@@ -2,6 +2,19 @@ const path = require('path');
 const orders = require(path.resolve('src/data/orders-data'));
 const nextId = require('../utils/nextId');
 
+const orderIdIsValid = (req, res, next) => {
+  const { orderId } = req.params;
+  const foundOrder = orders.find((order) => order.id === orderId);
+  if (foundOrder === undefined) {
+    next({
+      status: 404,
+      message: `The order Id does not exist: ${orderId}`,
+    });
+  }
+  res.locals.foundOrder = foundOrder;
+  next();
+};
+
 const bodyIsValid = (req, res, next) => {
   const order = req.body.data;
   const { orderId } = req.params;
@@ -64,6 +77,10 @@ const bodyIsValid = (req, res, next) => {
   next();
 };
 
+const read = (req, res, next) => {
+  res.json({ data: res.locals.foundOrder });
+};
+
 const list = (req, res) => {
   res.json({ data: orders });
 };
@@ -76,5 +93,6 @@ const create = (req, res, next) => {
 
 module.exports = {
   create: [bodyIsValid, create],
+  read: [orderIdIsValid, read],
   list,
 };
